@@ -1,20 +1,46 @@
+
+import os
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from .models import Video, FavoriteVideo
 
+
 class VideoSerializer(serializers.ModelSerializer):
     is_favorite = serializers.SerializerMethodField()
+    video_folder = serializers.SerializerMethodField()
+    screenshot = serializers.SerializerMethodField()
+
     class Meta:
         model = Video
-        fields = '__all__'
-        
-        
+        fields = ['id', 'is_favorite', 'title', 'url', 'created_at', 'description', 'video_folder', 'screenshot', 'category']
+
     def get_is_favorite(self, obj):
         user = self.context['request'].user
         if user.is_authenticated:
             return FavoriteVideo.objects.filter(user=user, video=obj).exists()
         return False
+# also hier wird über serializer und dann das object mit den pfad über eine get anfrage wieder gegeben
+    def get_video_folder(self, obj):
+      if obj.video_file:
+        video_folder = os.path.dirname(obj.video_file.url)
+        base_name = os.path.splitext(os.path.basename(obj.video_file.url))[0]
+        video_folder = os.path.join(video_folder, base_name).replace(f'/{base_name}/{base_name}', f'/{base_name}', 1).replace('\\', '/')
+        
+        return video_folder.replace('/videos/videos/', '/videos/')
+      return None
+
+    def get_screenshot(self, obj):
+        if obj.video_file:
+            base_name = os.path.splitext(os.path.basename(obj.video_file.url))[0]
+            video_folder = self.get_video_folder(obj).replace('\\', '/').replace(f'/{base_name}/{base_name}', f'/{base_name}', 1)
+            screenshot_path = f"{video_folder}/{base_name}_screenshot.png"
+
+            if screenshot_path:
+                return screenshot_path
     
+        return None
+
+
     
 class FavoriteVideoSerializer(serializers.Serializer):
     fav_videos = serializers.ListField(
