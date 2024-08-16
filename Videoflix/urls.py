@@ -4,7 +4,11 @@ from django.urls import include, path
 from django.conf.urls.static import static
 from django.conf import settings
 from debug_toolbar.toolbar import debug_toolbar_urls
+<<<<<<< Updated upstream
 from Users.views import PasswordResetAPIView, activate
+=======
+from Users.views import PasswordResetAPIView, PasswordResetCompleteView, activate, reset_password
+>>>>>>> Stashed changes
 from django.contrib.auth import views as auth_views
 from Users.views import   CustomPasswordResetConfirmView
 
